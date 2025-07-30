@@ -1,0 +1,7 @@
+PySide6
+langchain
+langchain-openai
+pyautogui
+Pillow
+openai
+python-dotenv 
