@@ -1,5 +1,6 @@
 import sys
-from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
+import time
+from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
                              QLineEdit, QLabel, QTextEdit, QFrame, QScrollArea, QDialog)
 from PySide6.QtCore import Qt, QThread, Signal, QTimer, QPropertyAnimation, QEasingCurve
 from PySide6.QtGui import QFont, QPalette, QColor, QIcon, QPainter, QBrush
@@ -17,6 +18,9 @@ class AnalysisThread(QThread):
     
     def run(self):
         try:
+            # Wait for 5 seconds before processing
+            time.sleep(5)
+            
             result = self.agent.analyze_screenshot_with_question(self.question)
             self.finished.emit(result)
         except Exception as e:
@@ -37,9 +41,196 @@ class TransparentWidget(QWidget):
         painter.setPen(Qt.NoPen)
         painter.drawRoundedRect(self.rect(), 15, 15)
 
+class QueryDisplayDialog(QDialog):
+    """Dialog to show user's query."""
+    def __init__(self, query, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("User Query")
+        self.setWindowFlags(
+            Qt.FramelessWindowHint |
+            Qt.WindowStaysOnTopHint |
+            Qt.Tool
+        )
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setFixedSize(600, 45)
+        
+        # Position dialog centered below the input window
+        if parent:
+            parent_pos = parent.pos()
+            parent_size = parent.size()
+            dialog_size = self.size()
+            
+            # Calculate center alignment
+            center_x = parent_pos.x() + (parent_size.width() - dialog_size.width()) // 2
+            # Position dialog below input window with small gap
+            center_y = parent_pos.y() + parent_size.height() + 10
+            
+            self.move(center_x, center_y)
+        
+        self.init_ui(query)
+    
+    def init_ui(self, query):
+        """Initialize the query display dialog UI."""
+        # Create central widget with transparent background
+        central_widget = TransparentWidget()
+        self.setLayout(QVBoxLayout())
+        self.layout().addWidget(central_widget)
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        
+        # Create layout for content
+        layout = QVBoxLayout(central_widget)
+        layout.setContentsMargins(10, 10, 10, 10)
+        
+        # Create query display with icon
+        query_layout = QHBoxLayout()
+        
+        # Icon (user symbol)
+        icon_label = QLabel("👤")  # User emoji
+        icon_label.setFont(QFont("SF Pro Display", 16))
+        icon_label.setStyleSheet("color: white; margin-right: 10px;")
+        query_layout.addWidget(icon_label)
+        
+        # Query text with ellipsis
+        query_text = QLabel(query)
+        query_text.setFont(QFont("SF Pro Display", 12))
+        query_text.setStyleSheet("color: white;")
+        query_text.setWordWrap(False)
+        query_text.setTextFormat(Qt.PlainText)
+        
+        # Truncate text if too long
+        if len(query) > 50:
+            query = query[:47] + "..."
+        query_text.setText(query)
+        
+        query_layout.addWidget(query_text)
+        query_layout.addStretch()
+        layout.addLayout(query_layout)
+        
+        # Add spacing to center vertically
+        layout.addStretch()
+
+class ThinkingDialog(QDialog):
+    """Dialog to show thinking spinner."""
+    def __init__(self, parent=None, query=None):
+        super().__init__(parent)
+        self.setWindowTitle("Thinking...")
+        self.setWindowFlags(
+            Qt.FramelessWindowHint |
+            Qt.WindowStaysOnTopHint |
+            Qt.Tool
+        )
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setFixedSize(600, 45)  # Further reduced height for better centering
+        
+        # Position dialog centered below the input window
+        if parent:
+            parent_pos = parent.pos()
+            parent_size = parent.size()
+            dialog_size = self.size()
+            
+            # Calculate center alignment
+            center_x = parent_pos.x() + (parent_size.width() - dialog_size.width()) // 2
+            # Position dialog below input window with small gap
+            center_y = parent_pos.y() + parent_size.height() + 10
+            
+            self.move(center_x, center_y)
+        
+        self.init_ui(query)
+        self.start_animation()
+    
+    def init_ui(self, query=None):
+        """Initialize the thinking dialog UI."""
+        # Create central widget with transparent background
+        central_widget = TransparentWidget()
+        self.setLayout(QVBoxLayout())
+        self.layout().addWidget(central_widget)
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        
+        # Create layout for content
+        layout = QVBoxLayout(central_widget)
+        layout.setContentsMargins(10, 10, 10, 10)
+        
+        # Create title row with icon, title, dots, and query
+        title_layout = QHBoxLayout()
+        
+        # Icon (paper airplane or thinking symbol)
+        icon_label = QLabel("✈️")  # Paper airplane emoji
+        icon_label.setFont(QFont("SF Pro Display", 20))
+        icon_label.setStyleSheet("color: white; margin-right: 10px;")
+        title_layout.addWidget(icon_label)
+        
+        # Title
+        title = QLabel("Thinking")
+        title.setFont(QFont("SF Pro Display", 16, QFont.Bold))
+        title.setStyleSheet("color: white;")
+        title_layout.addWidget(title)
+        
+        # Dots label
+        self.dots_label = QLabel("")
+        self.dots_label.setFont(QFont("SF Pro Display", 16, QFont.Bold))
+        self.dots_label.setStyleSheet("color: white;")
+        title_layout.addWidget(self.dots_label)
+        
+        # Add query display if available (same row as title)
+        if query:
+            # Add some spacing between title and query
+            title_layout.addSpacing(20)
+            
+            # Create query container with border
+            query_container = QWidget()
+            query_container.setStyleSheet("""
+                QWidget {
+                    background-color: rgba(255, 255, 255, 0.1);
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    border-radius: 8px;
+                    padding: 4px 8px;
+                }
+            """)
+            query_layout = QHBoxLayout(query_container)
+            query_layout.setContentsMargins(4, 4, 4, 4)
+            
+            # Query text with ellipsis
+            query_text = QLabel(query)
+            query_text.setFont(QFont("SF Pro Display", 11))
+            query_text.setStyleSheet("color: white;")
+            query_text.setWordWrap(False)
+            query_text.setTextFormat(Qt.PlainText)
+            
+            # Truncate text if too long (max width ~200px)
+            if len(query) > 25:
+                query = query[:22] + "..."
+            query_text.setText(query)
+            
+            query_layout.addWidget(query_text)
+            title_layout.addWidget(query_container)
+        
+        title_layout.addStretch()
+        layout.addLayout(title_layout)
+        
+        # Add spacing to match ResultDialog positioning
+        layout.addStretch()
+    
+    def start_animation(self):
+        """Start the dots animation."""
+        self.dots_count = 0
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_dots)
+        self.timer.start(500)  # Update every 500ms
+    
+    def update_dots(self):
+        """Update the dots animation."""
+        self.dots_count = (self.dots_count + 1) % 4
+        dots = "." * self.dots_count
+        self.dots_label.setText(dots)
+    
+    def stop_animation(self):
+        """Stop the dots animation."""
+        if hasattr(self, 'timer'):
+            self.timer.stop()
+
 class ResultDialog(QDialog):
     """Dialog to show AI analysis results."""
-    def __init__(self, result, parent=None):
+    def __init__(self, result, parent=None, query=None):
         super().__init__(parent)
         self.setWindowTitle("AI Analysis Result")
         self.setWindowFlags(
@@ -50,14 +241,22 @@ class ResultDialog(QDialog):
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setFixedSize(600, 300)
         
-        # Position dialog near the input window
+        # Position dialog centered below the input window
         if parent:
-            pos = parent.pos()
-            self.move(pos.x() + 50, pos.y() + 100)
+            parent_pos = parent.pos()
+            parent_size = parent.size()
+            dialog_size = self.size()
+            
+            # Calculate center alignment
+            center_x = parent_pos.x() + (parent_size.width() - dialog_size.width()) // 2
+            # Position dialog below input window with small gap
+            center_y = parent_pos.y() + parent_size.height() + 10
+            
+            self.move(center_x, center_y)
         
-        self.init_ui(result)
+        self.init_ui(result, query)
     
-    def init_ui(self, result):
+    def init_ui(self, result, query=None):
         """Initialize the result dialog UI."""
         # Create central widget with transparent background
         central_widget = TransparentWidget()
@@ -69,14 +268,61 @@ class ResultDialog(QDialog):
         layout = QVBoxLayout(central_widget)
         layout.setContentsMargins(10, 10, 10, 10)
         
-        # Create title
-        title = QLabel("AI Analysis Result")
-        title.setAlignment(Qt.AlignCenter)
-        title.setFont(QFont("SF Pro Display", 16, QFont.Bold))
-        title.setStyleSheet("color: white; margin-bottom: 10px;")
-        layout.addWidget(title)
+        # Create title row with icon, title, and query
+        title_layout = QHBoxLayout()
         
-        # Create text area for result
+        # Icon (AI brain symbol)
+        icon_label = QLabel("🧠")  # Brain emoji for AI
+        icon_label.setFont(QFont("SF Pro Display", 20))
+        icon_label.setStyleSheet("color: white; margin-right: 10px;")
+        title_layout.addWidget(icon_label)
+        
+        # Title
+        title = QLabel("AI Analysis Result")
+        title.setFont(QFont("SF Pro Display", 16, QFont.Bold))
+        title.setStyleSheet("color: white;")
+        title_layout.addWidget(title)
+        
+        # Add query display if available (same row as title)
+        if query:
+            # Add some spacing between title and query
+            title_layout.addSpacing(20)
+            
+            # Create query container with border
+            query_container = QWidget()
+            query_container.setStyleSheet("""
+                QWidget {
+                    background-color: rgba(255, 255, 255, 0.1);
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    border-radius: 8px;
+                    padding: 4px 8px;
+                }
+            """)
+            query_layout = QHBoxLayout(query_container)
+            query_layout.setContentsMargins(4, 4, 4, 4)
+            
+            # Query text with ellipsis
+            query_text = QLabel(query)
+            query_text.setFont(QFont("SF Pro Display", 11))
+            query_text.setStyleSheet("color: white;")
+            query_text.setWordWrap(False)
+            query_text.setTextFormat(Qt.PlainText)
+            
+            # Truncate text if too long (max width ~200px)
+            if len(query) > 25:
+                query = query[:22] + "..."
+            query_text.setText(query)
+            
+            query_layout.addWidget(query_text)
+            title_layout.addWidget(query_container)
+        
+        title_layout.addStretch()
+        layout.addLayout(title_layout)
+        
+        # Add spacing
+        layout.addStretch()
+        
+        # Create text area for result with top-left alignment
         result_text = QTextEdit()
         result_text.setPlainText(result)
         result_text.setReadOnly(True)
@@ -90,6 +336,7 @@ class ResultDialog(QDialog):
                 line-height: 1.4;
                 border-radius: 10px;
                 padding: 10px;
+                text-align: left;
             }
             QTextEdit QScrollBar:vertical {
                 background-color: rgba(255, 255, 255, 0.1);
@@ -116,20 +363,19 @@ class ResultDialog(QDialog):
         self.old_pos = None
     
     def mousePressEvent(self, event):
-        """Handle mouse press for window dragging."""
-        if event.button() == Qt.LeftButton:
-            self.old_pos = event.globalPos()
+        """Handle mouse press for window dragging - disabled for result dialog."""
+        # Disable dragging for result dialog - it only moves with parent
+        pass
     
     def mouseMoveEvent(self, event):
-        """Handle mouse move for window dragging."""
-        if self.old_pos:
-            delta = event.globalPos() - self.old_pos
-            self.move(self.pos() + delta)
-            self.old_pos = event.globalPos()
+        """Handle mouse move for window dragging - disabled for result dialog."""
+        # Disable dragging for result dialog - it only moves with parent
+        pass
     
     def mouseReleaseEvent(self, event):
-        """Handle mouse release."""
-        self.old_pos = None
+        """Handle mouse release - disabled for result dialog."""
+        # Disable dragging for result dialog - it only moves with parent
+        pass
     
     def mouseDoubleClickEvent(self, event):
         """Close dialog on double click."""
@@ -148,6 +394,9 @@ class FloatingWindow(QMainWindow):
         self.agent = FloatingAppAgent()
         self.analysis_thread = None
         self.result_dialog = None
+        self.thinking_dialog = None
+        self.query_dialog = None
+        self.current_query = None
         self.init_ui()
         
     def init_ui(self):
@@ -163,7 +412,7 @@ class FloatingWindow(QMainWindow):
         
         # Set window size and position
         self.setFixedSize(500, 34)
-        self.move(100, 100)
+        self.move(100, 50) # Điều chỉnh chiều cao
         
         # Create central widget with transparent background
         self.central_widget = TransparentWidget()
@@ -209,11 +458,34 @@ class FloatingWindow(QMainWindow):
             self.old_pos = event.globalPos()
     
     def mouseMoveEvent(self, event):
-        """Handle mouse move for window dragging."""
+        """Handle mouse move for window dragging - only horizontal movement."""
         if self.old_pos:
             delta = event.globalPos() - self.old_pos
-            self.move(self.pos() + delta)
+            # Only allow horizontal movement (x-axis), keep y position fixed
+            new_x = self.pos().x() + delta.x()
+            new_y = self.pos().y()  # Keep y position unchanged
+            self.move(new_x, new_y)
             self.old_pos = event.globalPos()
+            
+            # Move result dialog along with the input window
+            if self.result_dialog and self.result_dialog.isVisible():
+                dialog_size = self.result_dialog.size()
+                # Keep dialog centered below input window
+                center_x = new_x + (self.size().width() - dialog_size.width()) // 2
+                center_y = new_y + self.size().height() + 10
+                self.result_dialog.move(center_x, center_y)
+            
+
+            
+
+            
+            # Move thinking dialog along with the input window
+            if self.thinking_dialog and self.thinking_dialog.isVisible():
+                dialog_size = self.thinking_dialog.size()
+                # Keep dialog centered below input window
+                center_x = new_x + (self.size().width() - dialog_size.width()) // 2
+                center_y = new_y + self.size().height() + 10
+                self.thinking_dialog.move(center_x, center_y)
     
     def mouseReleaseEvent(self, event):
         """Handle mouse release."""
@@ -225,8 +497,14 @@ class FloatingWindow(QMainWindow):
         if not question:
             return
         
+        # Store current query
+        self.current_query = question
+        
         # Clear input field
         self.input_field.clear()
+        
+        # Show thinking dialog
+        self.show_thinking_dialog()
         
         # Start analysis in separate thread
         self.analysis_thread = AnalysisThread(self.agent, question)
@@ -234,15 +512,53 @@ class FloatingWindow(QMainWindow):
         self.analysis_thread.error.connect(self.show_error)
         self.analysis_thread.start()
     
+
+    
+    def show_thinking_dialog(self):
+        """Show the thinking dialog."""
+        # Close existing dialogs if any
+        if self.result_dialog:
+            self.result_dialog.close()
+        if self.thinking_dialog:
+            self.thinking_dialog.close()
+        
+        # Create and show thinking dialog
+        self.thinking_dialog = ThinkingDialog(self, self.current_query)
+        self.thinking_dialog.show()
+        
+        # Position thinking dialog correctly from the start
+        if self.thinking_dialog and self.thinking_dialog.isVisible():
+            dialog_size = self.thinking_dialog.size()
+            # Keep dialog centered below input window with proper spacing
+            center_x = self.pos().x() + (self.size().width() - dialog_size.width()) // 2
+            center_y = self.pos().y() + self.size().height() + 10
+            self.thinking_dialog.move(center_x, center_y)
+        
+        # Set focus back to input field
+        self.input_field.setFocus()
+    
     def show_result(self, result):
         """Show the analysis result in a separate dialog."""
+        # Close thinking dialog if any
+        if self.thinking_dialog:
+            self.thinking_dialog.stop_animation()
+            self.thinking_dialog.close()
+        
         # Close existing result dialog if any
         if self.result_dialog:
             self.result_dialog.close()
         
-        # Create and show result dialog
-        self.result_dialog = ResultDialog(result, self)
+        # Create and show result dialog with query
+        self.result_dialog = ResultDialog(result, self, self.current_query)
         self.result_dialog.show()
+        
+        # Position result dialog correctly from the start
+        if self.result_dialog and self.result_dialog.isVisible():
+            dialog_size = self.result_dialog.size()
+            # Keep dialog centered below input window with proper spacing
+            center_x = self.pos().x() + (self.size().width() - dialog_size.width()) // 2
+            center_y = self.pos().y() + self.size().height() + 10
+            self.result_dialog.move(center_x, center_y)
         
         # Set focus back to input field
         self.input_field.setFocus()
