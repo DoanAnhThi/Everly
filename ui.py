@@ -145,19 +145,13 @@ class ThinkingDialog(QDialog):
         
         # Create layout for content
         layout = QVBoxLayout(central_widget)
-        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setContentsMargins(25, 10, 10, 10)
         
         # Create title row with fixed left and right sections
         title_layout = QHBoxLayout()
         
-        # Left section: Icon, title, and dots
+        # Left section: Title and dots
         left_section = QHBoxLayout()
-        
-        # Icon (paper airplane or thinking symbol)
-        icon_label = QLabel("✈️")  # Paper airplane emoji
-        icon_label.setFont(QFont("SF Pro Display", 20))
-        icon_label.setStyleSheet("color: white; margin-right: 10px;")
-        left_section.addWidget(icon_label)
         
         # Title
         title = QLabel("Thinking")
@@ -272,14 +266,9 @@ class ResultDialog(QDialog):
         # Create title row with fixed left and right sections
         title_layout = QHBoxLayout()
         
-        # Left section: Icon and title
+        # Left section: Title with extra left margin
         left_section = QHBoxLayout()
-        
-        # Icon (AI brain symbol)
-        icon_label = QLabel("🧠")  # Brain emoji for AI
-        icon_label.setFont(QFont("SF Pro Display", 20))
-        icon_label.setStyleSheet("color: white; margin-right: 10px;")
-        left_section.addWidget(icon_label)
+        left_section.setContentsMargins(15, 0, 0, 0)  # Add 15px left margin to title
         
         # Title
         title = QLabel("AI Analysis Result")
