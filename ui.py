@@ -150,32 +150,38 @@ class ThinkingDialog(QDialog):
         layout = QVBoxLayout(central_widget)
         layout.setContentsMargins(10, 10, 10, 10)
         
-        # Create title row with icon, title, dots, and query
+        # Create title row with fixed left and right sections
         title_layout = QHBoxLayout()
+        
+        # Left section: Icon, title, and dots
+        left_section = QHBoxLayout()
         
         # Icon (paper airplane or thinking symbol)
         icon_label = QLabel("✈️")  # Paper airplane emoji
         icon_label.setFont(QFont("SF Pro Display", 20))
         icon_label.setStyleSheet("color: white; margin-right: 10px;")
-        title_layout.addWidget(icon_label)
+        left_section.addWidget(icon_label)
         
         # Title
         title = QLabel("Thinking")
         title.setFont(QFont("SF Pro Display", 16, QFont.Bold))
         title.setStyleSheet("color: white;")
-        title_layout.addWidget(title)
+        left_section.addWidget(title)
         
         # Dots label
         self.dots_label = QLabel("")
         self.dots_label.setFont(QFont("SF Pro Display", 16, QFont.Bold))
         self.dots_label.setStyleSheet("color: white;")
-        title_layout.addWidget(self.dots_label)
+        left_section.addWidget(self.dots_label)
         
-        # Add query display if available (same row as title)
+        # Add left section to main layout
+        title_layout.addLayout(left_section)
+        
+        # Add stretch to separate left and right sections
+        title_layout.addStretch()
+        
+        # Right section: Query container (if available)
         if query:
-            # Add some spacing between title and query
-            title_layout.addSpacing(20)
-            
             # Create query container with border
             query_container = QWidget()
             query_container.setStyleSheet("""
@@ -186,8 +192,8 @@ class ThinkingDialog(QDialog):
                     padding: 4px 8px;
                 }
             """)
-            query_layout = QHBoxLayout(query_container)
-            query_layout.setContentsMargins(4, 4, 4, 4)
+            query_inner_layout = QHBoxLayout(query_container)
+            query_inner_layout.setContentsMargins(4, 4, 4, 4)
             
             # Query text with ellipsis
             query_text = QLabel(query)
@@ -201,10 +207,8 @@ class ThinkingDialog(QDialog):
                 query = query[:22] + "..."
             query_text.setText(query)
             
-            query_layout.addWidget(query_text)
+            query_inner_layout.addWidget(query_text)
             title_layout.addWidget(query_container)
-        
-        title_layout.addStretch()
         layout.addLayout(title_layout)
         
         # Add spacing to match ResultDialog positioning
@@ -268,26 +272,32 @@ class ResultDialog(QDialog):
         layout = QVBoxLayout(central_widget)
         layout.setContentsMargins(10, 10, 10, 10)
         
-        # Create title row with icon, title, and query
+        # Create title row with fixed left and right sections
         title_layout = QHBoxLayout()
+        
+        # Left section: Icon and title
+        left_section = QHBoxLayout()
         
         # Icon (AI brain symbol)
         icon_label = QLabel("🧠")  # Brain emoji for AI
         icon_label.setFont(QFont("SF Pro Display", 20))
         icon_label.setStyleSheet("color: white; margin-right: 10px;")
-        title_layout.addWidget(icon_label)
+        left_section.addWidget(icon_label)
         
         # Title
         title = QLabel("AI Analysis Result")
         title.setFont(QFont("SF Pro Display", 16, QFont.Bold))
         title.setStyleSheet("color: white;")
-        title_layout.addWidget(title)
+        left_section.addWidget(title)
         
-        # Add query display if available (same row as title)
+        # Add left section to main layout
+        title_layout.addLayout(left_section)
+        
+        # Add stretch to separate left and right sections
+        title_layout.addStretch()
+        
+        # Right section: Query container (if available)
         if query:
-            # Add some spacing between title and query
-            title_layout.addSpacing(20)
-            
             # Create query container with border
             query_container = QWidget()
             query_container.setStyleSheet("""
@@ -298,13 +308,13 @@ class ResultDialog(QDialog):
                     padding: 4px 8px;
                 }
             """)
-            query_layout = QHBoxLayout(query_container)
-            query_layout.setContentsMargins(4, 4, 4, 4)
+            query_inner_layout = QHBoxLayout(query_container)
+            query_inner_layout.setContentsMargins(4, 4, 4, 4)
             
             # Query text with ellipsis
             query_text = QLabel(query)
-            query_text.setFont(QFont("SF Pro Display", 11))
             query_text.setStyleSheet("color: white;")
+            query_text.setFont(QFont("SF Pro Display", 11))
             query_text.setWordWrap(False)
             query_text.setTextFormat(Qt.PlainText)
             
@@ -313,10 +323,8 @@ class ResultDialog(QDialog):
                 query = query[:22] + "..."
             query_text.setText(query)
             
-            query_layout.addWidget(query_text)
+            query_inner_layout.addWidget(query_text)
             title_layout.addWidget(query_container)
-        
-        title_layout.addStretch()
         layout.addLayout(title_layout)
         
         # Add spacing
