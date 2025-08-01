@@ -67,7 +67,7 @@ class ResultDialog(QDialog):
         
         # Create layout for content
         layout = QVBoxLayout(central_widget)
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(10, 10, 10, 10)
         
         # Create title
         title = QLabel("AI Analysis Result")
@@ -171,12 +171,12 @@ class FloatingWindow(QMainWindow):
         
         # Create layout
         layout = QVBoxLayout(self.central_widget)
-        layout.setContentsMargins(20, 0, 0, 0)
+        layout.setContentsMargins(20, 0, 20, 0)
         layout.setSpacing(0)
         
         # Create input field
         self.input_field = QLineEdit()
-        self.input_field.setPlaceholderText("Ask about your screen...")
+        self.input_field.setPlaceholderText("Ask me anything...")
         self.input_field.setFont(QFont("SF Pro Display", 14))
         self.input_field.setFixedHeight(34)  # hoặc 36, tùy font
         self.input_field.setStyleSheet("""

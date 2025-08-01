@@ -1,6 +1,0 @@
-# OpenAI API Configuration
-# Copy this file to .env and replace 'your_openai_api_key_here' with your actual OpenAI API key
-OPENAI_API_KEY=your_openai_api_key_here
-
-# Optional: Set custom model (default is gpt-4o)
-# OPENAI_MODEL=gpt-4o 

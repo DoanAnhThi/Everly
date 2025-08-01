@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-"""
-Floating AI Assistant - A desktop app that analyzes screenshots using GPT-4o Vision
-
-This app provides a small, frameless, always-on-top floating window where users can
-type questions and get AI analysis of their current screen using LangChain and GPT-4o.
-"""
-
 import sys
 import os
 from PySide6.QtWidgets import QApplication
