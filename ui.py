@@ -18,9 +18,6 @@ class AnalysisThread(QThread):
     
     def run(self):
         try:
-            # Wait for 5 seconds before processing
-            time.sleep(5)
-            
             result = self.agent.analyze_screenshot_with_question(self.question)
             self.finished.emit(result)
         except Exception as e:
