@@ -98,33 +98,7 @@ class ScheduleWorkoutTool(BaseTool):
     def _arun(self, *args, **kwargs):
         raise NotImplementedError("Tool này không hỗ trợ chạy async")
 
-# ===== Tool 3: General Chat =====
-class GeneralChatTool(BaseTool):
-    name: str = "general_chat"
-    description: str = (
-        "Use this tool for general greetings, conversations, or questions not related to the screen. Examples: 'Hello', 'How are you?', 'What's the weather?', general questions, etc."
-    )
-
-    def _run(self, question: str) -> str:
-        """Handle general chat questions without screenshot."""
-        # Create OpenAI client for general chat
-        llm = ChatOpenAI(
-            model="gpt-4o", temperature=0.7, api_key=os.getenv("OPENAI_API_KEY")
-        )
-        
-        # Create message for general chat
-        message = HumanMessage(
-            content=f"You are a helpful AI assistant. Answer this question naturally: {question}"
-        )
-        
-        # Get response
-        response = llm.invoke([message])
-        return response.content
-
-    def _arun(self, *args, **kwargs):
-        raise NotImplementedError("Async not implemented")
-
-# ===== Tool 4: Send Message to Client =====
+# ===== Tool 3: Send Message to Client =====
 class SendMessageInput(BaseModel):
     message: str
 
@@ -154,7 +128,6 @@ class FloatingAppAgent:
 
         self.tools = [
             ScreenshotTool(),
-            GeneralChatTool(),
             ScheduleWorkoutTool(),
             SendMessageToClientTool()
         ]
