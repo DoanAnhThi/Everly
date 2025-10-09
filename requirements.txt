@@ -7,4 +7,6 @@ openai
 python-dotenv
 watchdog
 dateparser
-requests 
+requests
+mcp
+openai-responses

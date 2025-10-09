@@ -4,7 +4,7 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QLineEdit, QLabel, QTextEdit, QFrame, QScrollArea, QDialog)
 from PySide6.QtCore import Qt, QThread, Signal, QTimer, QPropertyAnimation, QEasingCurve
 from PySide6.QtGui import QFont, QPalette, QColor, QIcon, QPainter, QBrush
-from agent import FloatingAppAgent
+from mcp_agent import floating_app_agent
 
 class AnalysisThread(QThread):
     """Thread for running screenshot analysis to prevent UI freezing."""
@@ -385,7 +385,7 @@ class ResultDialog(QDialog):
 class FloatingWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.agent = FloatingAppAgent()
+        self.agent = floating_app_agent
         self.analysis_thread = None
         self.result_dialog = None
         self.thinking_dialog = None

@@ -72,7 +72,9 @@ A minimalist, floating desktop application that uses GPT-4o Vision to analyze sc
 ```
 ├── main.py          # Application entry point
 ├── ui.py            # PySide6 UI components and floating windows
-├── agent.py         # LangChain agent and screenshot analysis tool
+├── mcp_agent.py     # MCP client wrapper used by the UI/agent layer
+├── mcp_server.py    # MCP server exposing screenshot, schedule, messaging tools
+├── agent.py         # (Legacy) LangChain agent implementation
 ├── requirements.txt # Python dependencies
 ├── test_setup.py    # Setup verification script
 ├── env_template.txt # Environment variables template
@@ -83,26 +85,35 @@ A minimalist, floating desktop application that uses GPT-4o Vision to analyze sc
 
 ### Architecture
 
-- **Modular Design**: Separated into UI, agent, and main modules
+- **Modular Design**: Separated into UI, agent client, MCP server, and main modules
 - **Threading**: Screenshot analysis runs in background thread to prevent UI freezing
-- **LangChain Integration**: Uses `initialize_agent()` with custom `ScreenshotTool`
+- **MCP Integration**: The UI communicates with a local MCP server that exposes Everly tools
 - **Vision API**: Leverages GPT-4o's vision capabilities for image analysis
 
 ### Key Components
 
 - **FloatingWindow**: PySide6-based frameless, always-on-top input bar
 - **ResultDialog**: Separate dialog for displaying AI analysis results
-- **FloatingAppAgent**: LangChain agent with screenshot analysis tool
-- **ScreenshotTool**: Custom LangChain tool that captures and analyzes screenshots
+- **MCP Server (`mcp_server.py`)**: FastMCP server exposing screenshot analysis, scheduling, and messaging tools
+- **MCP Client (`mcp_agent.py`)**: Lightweight wrapper connecting the UI to the MCP server
 - **AnalysisThread**: QThread subclass for non-blocking AI analysis
+
+### MCP Workflow Overview
+
+1. `ui.py` receives user input and delegates processing to `floating_app_agent`.
+2. `mcp_agent.py` connects to the stdio-based `mcp_server.py` using the MCP Python client.
+3. The MCP server exposes three tools (`screenshot_analysis`, `schedule_workout`, `send_message_to_client`).
+4. Tool results are returned as MCP `TextContent` blocks, converted to plain text for rendering in the UI.
 
 ### Dependencies
 
 - **PySide6**: GUI framework for the floating windows
-- **LangChain**: Agent framework and OpenAI integration
+- **MCP (mcp)**: Model Context Protocol server/client toolkit powering the tools
+- **OpenAI & openai-responses**: Communication with GPT-4o models via the Responses API
 - **pyautogui**: Screenshot capture functionality
 - **Pillow**: Image processing for screenshot handling
 - **python-dotenv**: Environment variable management
+- **LangChain** *(legacy)*: Kept for the previous agent implementation (`agent.py`)
 
 ## Troubleshooting
 
