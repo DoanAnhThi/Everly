@@ -72,7 +72,7 @@ A minimalist, floating desktop application that uses GPT-4o Vision to analyze sc
 ```
 ├── main.py          # Application entry point
 ├── ui.py            # PySide6 UI components and floating windows
-├── mcp_agent.py     # MCP client wrapper used by the UI/agent layer
+├── mcp_client.py     # MCP client wrapper used by the UI/agent layer
 ├── mcp_server.py    # MCP server exposing screenshot, schedule, messaging tools
 ├── agent.py         # (Legacy) LangChain agent implementation
 ├── requirements.txt # Python dependencies
@@ -95,13 +95,13 @@ A minimalist, floating desktop application that uses GPT-4o Vision to analyze sc
 - **FloatingWindow**: PySide6-based frameless, always-on-top input bar
 - **ResultDialog**: Separate dialog for displaying AI analysis results
 - **MCP Server (`mcp_server.py`)**: FastMCP server exposing screenshot analysis, scheduling, and messaging tools
-- **MCP Client (`mcp_agent.py`)**: Lightweight wrapper connecting the UI to the MCP server
+- **MCP Client (`mcp_client.py`)**: Lightweight wrapper connecting the UI to the MCP server
 - **AnalysisThread**: QThread subclass for non-blocking AI analysis
 
 ### MCP Workflow Overview
 
 1. `ui.py` receives user input and delegates processing to `floating_app_agent`.
-2. `mcp_agent.py` connects to the stdio-based `mcp_server.py` using the MCP Python client.
+2. `mcp_client.py` connects to the stdio-based `mcp_server.py` using the MCP Python client.
 3. The MCP server exposes three tools (`screenshot_analysis`, `schedule_workout`, `send_message_to_client`).
 4. Tool results are returned as MCP `TextContent` blocks, converted to plain text for rendering in the UI.
 

@@ -4,7 +4,7 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QLineEdit, QLabel, QTextEdit, QFrame, QScrollArea, QDialog)
 from PySide6.QtCore import Qt, QThread, Signal, QTimer, QPropertyAnimation, QEasingCurve
 from PySide6.QtGui import QFont, QPalette, QColor, QIcon, QPainter, QBrush
-from mcp_agent import floating_app_agent
+from mcp_client import floating_app_agent
 
 class AnalysisThread(QThread):
     """Thread for running screenshot analysis to prevent UI freezing."""
